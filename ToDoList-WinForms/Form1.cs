@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml.Serialization;
@@ -44,7 +38,7 @@ namespace ToDoList_WinForms
             this.Load += (s, e) => LoadData();
             this.FormClosing += (s, e) =>
             {
-                try { SaveData(); } catch { /* no bloquear cierre */ }
+                try { SaveData(); } catch {}
             };
         }
 
@@ -64,7 +58,6 @@ namespace ToDoList_WinForms
 
         private void SetupUi()
         {
-            // Botón Agregar
             btnAdd = new Button
             {
                 Text = "Agregar",
@@ -73,7 +66,6 @@ namespace ToDoList_WinForms
                 Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
 
-            // Botón Eliminar
             btnDelete = new Button
             {
                 Text = "Eliminar",
@@ -82,7 +74,6 @@ namespace ToDoList_WinForms
                 Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
 
-            // Botón Editar
             btnEdit = new Button
             {
                 Text = "Editar",
@@ -91,7 +82,6 @@ namespace ToDoList_WinForms
                 Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
 
-            // Botón Limpiar completadas
             btnClearCompleted = new Button
             {
                 Text = "Limpiar completadas",
@@ -103,13 +93,9 @@ namespace ToDoList_WinForms
             // Fijar alturas (evita problemas de DPI)
             btnAdd.Height = btnDelete.Height = btnEdit.Height = btnClearCompleted.Height = 28;
 
-            // Posicionamiento (derecha → izquierda)
-            btnAdd.Left = ClientSize.Width - 12 - btnAdd.Width;
-            btnDelete.Left = btnAdd.Left - 8 - btnDelete.Width;
-            btnEdit.Left = btnDelete.Left - 8 - btnEdit.Width;
-            btnClearCompleted.Left = btnEdit.Left - 8 - btnClearCompleted.Width;
+            PositionButtons();
+            this.Resize += (s, e) => PositionButtons();
 
-            // Lista (ahora va pegada a los botones, sin textbox)
             lstTasks = new CheckedListBox
             {
                 Left = 12,
@@ -131,9 +117,10 @@ namespace ToDoList_WinForms
             };
 
             // Eventos
-            btnAdd.Click += (s, e) => AddTaskViaPrompt();     // <-- NUEVO flujo
+            btnAdd.Click += (s, e) => AddTaskViaPrompt();
             btnDelete.Click += (s, e) => DeleteSelected();
             btnEdit.Click += (s, e) => EditSelected();
+            btnClearCompleted.Click += (s, e) => ClearCompleted();
 
             // Atajos en la lista
             lstTasks.KeyDown += (s, e) =>
@@ -148,7 +135,6 @@ namespace ToDoList_WinForms
 
             lstTasks.DoubleClick += (s, e) => EditSelected();
 
-            // Agregar controles
             Controls.Add(btnAdd);
             Controls.Add(btnDelete);
             Controls.Add(btnEdit);
@@ -169,7 +155,6 @@ namespace ToDoList_WinForms
                 lstTasks.Height = ClientSize.Height - (btnAdd.Bottom + 24);
             };
 
-            // StatusStrip
             statusStrip = new StatusStrip();
             lblCounts = new ToolStripStatusLabel();
             lblCounts.Spring = true;
@@ -334,6 +319,28 @@ namespace ToDoList_WinForms
                 MessageBox.Show("No se pudo guardar: " + ex.Message);
             }
         }
+
+        private void PositionButtons()
+        {
+            int margin = 12;
+            int spacing = 8;
+
+            // --- Izquierda: Agregar ---
+            btnAdd.Left = margin;
+            btnAdd.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+
+            // --- Centro: Editar ---
+            btnEdit.Left = (ClientSize.Width - btnEdit.Width) / 2;
+            btnEdit.Anchor = AnchorStyles.Top; // centrado, no anclado a lados
+
+            // --- Derecha: Eliminar y Limpiar completadas ---
+            btnClearCompleted.Left = ClientSize.Width - margin - btnClearCompleted.Width;
+            btnDelete.Left = btnClearCompleted.Left - spacing - btnDelete.Width;
+
+            btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnClearCompleted.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        }
+
 
         private void LoadData()
         {
